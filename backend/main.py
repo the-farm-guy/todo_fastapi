@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/", StaticFiles(directory="static"), name="static")
 
 class Item(BaseModel):
     title: str
