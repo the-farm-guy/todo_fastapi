@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
-app.mount("/", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class Item(BaseModel):
     title: str
@@ -13,7 +14,9 @@ items = {}
 
 @app.get('/')
 async def home_page():
-    return 'website up and running'
+    with open("static/index.html", "r") as file:
+        content = file.read()
+        return HTMLResponse(content = content)
 
 @app.post('/items/{item_id}')
 async def post_items(item_id : int, todo : Item):
