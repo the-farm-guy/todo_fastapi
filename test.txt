@@ -1,0 +1,6 @@
+1. pull image 
+    docker pull thefarmguy/todofastapi:1.0
+
+2. run container 
+    docker run -p 80:80 thefarmguy/todofastapi:1.0
+

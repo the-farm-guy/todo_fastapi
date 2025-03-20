@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   web:
-    image: your-dockerhub-username/items-manager:latest
-    container_name: items-manager
+    image: thefarmguy/todofastapi:1.0
+    container_name: todofastapi
     ports:
       - "80:80"
     restart: unless-stopped

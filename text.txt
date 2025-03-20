@@ -1,7 +1,0 @@
-1. Pull Image 
-    docker run -p 80:80 your-dockerhub-username/items-manager:latest
-
-2. Run Container
-    docker run -p 80:80 your-dockerhub-username/items-manager:latest
-
-3. Click on the provided Link.
