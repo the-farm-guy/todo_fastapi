@@ -4,3 +4,11 @@
 2. run container 
     docker run -p 80:80 thefarmguy/todofastapi:1.0
 
+3. commands for kubernets
+    kubectl apply -f deployment.yaml
+    kubectl apply -f service.yaml 
+    kubectl get pods
+    minikube tunnel
+    kubectl get svc
+
+        get the ip and then http://<your-ip>
