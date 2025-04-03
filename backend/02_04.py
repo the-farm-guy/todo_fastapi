@@ -17,6 +17,11 @@ templates = Jinja2Templates(directory="template")
 async def home_page(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+@app.get('/todos', response_class=HTMLResponse)
+async def todos_page(request: Request):
+    return templates.TemplateResponse("todos.html", {"request": request})
+
+
 @app.post('/items/{todo_id}', response_model=schema.TodoResponse)
 async def post_items(todo_id: int, todo: schema.TodoCreate, db: Session = Depends(get_db)):
     existing_todo = crud.list_todo(db=db, todo_id=todo_id)

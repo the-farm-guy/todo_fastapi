@@ -1,8 +1,9 @@
 // Global variables
 let isEditing = false;
 let currentEditId = null;
+let allItems = []; // Store all items
 
-// Load all items when page loads
+// Load items when page loads
 window.onload = function() {
     fetchAllItems();
 };
@@ -11,12 +12,19 @@ window.onload = function() {
 function showNotification(message, type) {
     const notification = document.getElementById('notification');
     notification.textContent = message;
-    notification.className = 'notification ' + type;
-    notification.style.display = 'block';
+    notification.classList.remove('hidden', 'bg-green-100', 'border-green-500', 'text-green-700', 'bg-red-100', 'border-red-500', 'text-red-700');
+    
+    if (type === 'success') {
+        notification.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+    } else {
+        notification.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+    }
+    
+    notification.classList.remove('hidden');
     
     // Hide after 3 seconds
     setTimeout(() => {
-        notification.style.display = 'none';
+        notification.classList.add('hidden');
     }, 3000);
 }
 
@@ -29,35 +37,82 @@ async function fetchAllItems() {
         }
         
         const items = await response.json();
-        displayItems(items);
+        allItems = items;
+        
+        // Display the most recent 2 todos
+        displayRecentTodos(items);
     } catch (error) {
         showNotification('Error loading items: ' + error.message, 'error');
     }
 }
 
-// Display items in the UI
-function displayItems(items) {
-    const container = document.getElementById('items-container');
-    container.innerHTML = '';
+// Display recent todos
+function displayRecentTodos(items) {
+    const container = document.getElementById('recent-todos');
     
     if (items.length === 0) {
-        container.innerHTML = '<p>No items found. Add your first item!</p>';
+        container.innerHTML = `
+            <div class="bg-gray-50 rounded-lg border border-gray-200 p-6 text-center">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">No todos</h3>
+                <p class="mt-1 text-sm text-gray-500">Get started by creating a new todo.</p>
+            </div>
+        `;
         return;
     }
     
-    items.forEach(item => {
-        const itemCard = document.createElement('div');
-        itemCard.className = 'item-card';
-        itemCard.innerHTML = `
-            <h3>${item.title}</h3>
-            <p>${item.description}</p>
-            <div class="item-actions">
-                <button onclick="loadItemForEdit(${item.id})" class="btn-warning">Edit</button>
-                <button onclick="deleteItem(${item.id})" class="btn-danger">Delete</button>
+    // Sort by ID (most recent first) and take the first 2
+    const recentItems = [...items].sort((a, b) => b.id - a.id).slice(0, 2);
+    
+    container.innerHTML = '';
+    
+    recentItems.forEach(item => {
+        const isCompleted = item.completed ? true : false;
+        
+        const itemElement = document.createElement('div');
+        itemElement.className = 'py-4 first:pt-0 last:pb-0';
+        
+        itemElement.innerHTML = `
+            <div class="flex items-start">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center">
+                        <label class="inline-flex items-center mr-3">
+                            <input type="checkbox" onchange="toggleCompleted(${item.id}, this.checked)" ${isCompleted ? 'checked' : ''}
+                                class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        </label>
+                        <h3 class="text-base font-medium ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}">
+                            ${item.title}
+                        </h3>
+                    </div>
+                    <p class="mt-1 text-sm text-gray-600">${item.description}</p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex space-x-2">
+                    <button onclick="loadItemForEdit(${item.id})" class="bg-white rounded-md font-medium text-primary hover:text-primary-dark focus:outline-none text-sm">
+                        Edit
+                    </button>
+                    <button onclick="deleteItem(${item.id})" class="bg-white rounded-md font-medium text-red-600 hover:text-red-800 focus:outline-none text-sm">
+                        Delete
+                    </button>
+                </div>
             </div>
         `;
-        container.appendChild(itemCard);
+        
+        container.appendChild(itemElement);
     });
+}
+
+// Toggle item completion status
+function toggleCompleted(id, isCompleted) {
+    // Find the item in our local array and update it
+    const itemIndex = allItems.findIndex(item => item.id === id);
+    if (itemIndex !== -1) {
+        allItems[itemIndex].completed = isCompleted;
+        
+        // Refresh the display to update the UI
+        displayRecentTodos(allItems);
+    }
 }
 
 // Add a new item
@@ -88,11 +143,11 @@ async function addItem() {
             throw new Error(errorData.detail || 'Error adding item');
         }
         
-        showNotification('Item added successfully', 'success');
+        showNotification('Todo added successfully', 'success');
         clearForm();
         fetchAllItems();
     } catch (error) {
-        showNotification('Error adding item: ' + error.message, 'error');
+        showNotification('Error adding Todo: ' + error.message, 'error');
     }
 }
 
@@ -115,9 +170,9 @@ async function loadItemForEdit(id) {
         document.getElementById('itemId').disabled = true;
         
         // Show update and cancel buttons, hide add button
-        document.querySelector('button').style.display = 'none';
-        document.getElementById('updateBtn').style.display = 'inline-block';
-        document.getElementById('cancelBtn').style.display = 'inline-block';
+        document.getElementById('addBtn').style.display = 'none';
+        document.getElementById('updateBtn').style.display = 'block';
+        document.getElementById('cancelBtn').style.display = 'block';
         
         isEditing = true;
         currentEditId = id;
@@ -154,17 +209,17 @@ async function updateItem() {
             throw new Error(errorData.detail || 'Error updating item');
         }
         
-        showNotification('Item updated successfully', 'success');
+        showNotification('Todo updated successfully', 'success');
         cancelEdit();
         fetchAllItems();
     } catch (error) {
-        showNotification('Error updating item: ' + error.message, 'error');
+        showNotification('Error updating Todo: ' + error.message, 'error');
     }
 }
 
 // Delete an item
 async function deleteItem(id) {
-    if (!confirm('Are you sure you want to delete this item?')) {
+    if (!confirm('Are you sure you want to delete this todo?')) {
         return;
     }
     
@@ -178,7 +233,7 @@ async function deleteItem(id) {
             throw new Error(errorData.detail || 'Error deleting item');
         }
         
-        showNotification('Item deleted successfully', 'success');
+        showNotification('Todo deleted successfully', 'success');
         fetchAllItems();
         
         // If we were editing this item, reset the form
@@ -186,7 +241,7 @@ async function deleteItem(id) {
             cancelEdit();
         }
     } catch (error) {
-        showNotification('Error deleting item: ' + error.message, 'error');
+        showNotification('Error deleting Todo: ' + error.message, 'error');
     }
 }
 
@@ -202,7 +257,7 @@ function cancelEdit() {
     document.getElementById('itemId').disabled = false;
     
     // Show add button, hide update and cancel buttons
-    document.querySelector('button').style.display = 'inline-block';
+    document.getElementById('addBtn').style.display = 'block';
     document.getElementById('updateBtn').style.display = 'none';
     document.getElementById('cancelBtn').style.display = 'none';
 }

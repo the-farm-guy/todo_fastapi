@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo Manager | Manage Todos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            light: '#81c784',
+                            DEFAULT: '#4CAF50',
+                            dark: '#2e7d32',
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-primary-dark text-xl font-bold">Todo Manager</span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="/" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Dashboard
+                        </a>
+                        <a href="/todos" class="border-primary-dark text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Manage Todos
+                        </a>
+                    </div>
+                </div>
+                <div class="hidden sm:ml-6 sm:flex sm:items-center">
+                    <button type="button" onclick="window.location.href='/'" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm font-medium">
+                        New Todo
+                    </button>
+                </div>
+                <div class="-mr-2 flex items-center sm:hidden">
+                    <button type="button" id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary">
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div class="sm:hidden hidden" id="mobile-menu">
+            <div class="pt-2 pb-3 space-y-1">
+                <a href="/" class="border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Dashboard
+                </a>
+                <a href="/todos" class="bg-primary-light border-primary-dark text-primary-dark block pl-3 pr-4 py-2 border-l-4 text-base font-medium">
+                    Manage Todos
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Notification -->
+        <div id="notification" class="hidden mb-6 p-4 rounded-lg border-l-4 text-sm font-medium shadow-md"></div>
+
+        <!-- Page Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Manage Todos</h1>
+            <p class="mt-1 text-sm text-gray-600">Search, filter, and manage all your tasks in one place</p>
+        </header>
+
+        <!-- Search and Filter Panel -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="p-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <!-- Search Box -->
+                    <div class="flex-grow">
+                        <label for="searchInput" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                        <div class="relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <input type="text" id="searchInput" placeholder="Search todos..." oninput="searchItems()" 
+                                class="focus:ring-primary focus:border-primary block w-full pl-10 pr-12 sm:text-sm border-gray-300 rounded-md py-2">
+                            <div class="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
+                                <button onclick="clearSearch()" class="inline-flex items-center px-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter Options -->
+                    <div class="md:w-1/4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filter by</label>
+                        <div class="flex rounded-md shadow-sm">
+                            <button onclick="filterByStatus('all')" class="filter-btn relative inline-flex items-center px-4 py-2 rounded-l-md border border-r-0 border-gray-300 bg-primary text-sm font-medium text-white focus:z-10 focus:outline-none">
+                                All
+                            </button>
+                            <button onclick="filterByStatus('active')" class="filter-btn relative inline-flex items-center px-4 py-2 border border-r-0 border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none">
+                                Active
+                            </button>
+                            <button onclick="filterByStatus('completed')" class="filter-btn relative inline-flex items-center px-4 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:z-10 focus:outline-none">
+                                Completed
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sort Options -->
+                    <div class="md:w-1/6">
+                        <label for="sortSelect" class="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+                        <select id="sortSelect" onchange="sortItems(this.value)" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm rounded-md">
+                            <option value="id">ID</option>
+                            <option value="title">Title</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Todos List -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-medium text-gray-900">All Todos</h2>
+                    <p class="mt-1 text-sm text-gray-600" id="todos-count">Loading todos...</p>
+                </div>
+                <button onclick="window.location.href='/'" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark">
+                    <svg class="mr-2 -ml-1 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Add New Todo
+                </button>
+            </div>
+            <div class="divide-y divide-gray-200" id="items-container">
+                <div class="text-center py-10 text-gray-500">
+                    <p>Loading todos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle mobile menu
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+    </script>
+    <script src="/static/todos.js"></script>
+</body>
+</html>
